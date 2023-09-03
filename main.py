@@ -50,8 +50,12 @@ async def setting(interaction: discord.Interaction, channel: discord.TextChannel
 async def annonce(interaction: discord.Interaction, annonce: str):
     annonce_channel = bot.get_channel(int(env.var["ANNONCE_CHANNEL_ID"]))
     if annonce_channel.permissions_for(interaction.user).send_messages:
+        
         await annonce_channel.send(annonce)
+
+
     
+        await interaction.response.send_message("Annonce envoyée")
     
     else:
         await interaction.response.send_message("You don't have permission to send messages in this channel")
