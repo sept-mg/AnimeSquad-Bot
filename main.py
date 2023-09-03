@@ -1,7 +1,10 @@
-import discord, env, guild_settings_manager
+import discord
 from discord import app_commands
+from env import Env
 
-TOKEN = env.token
+env = Env()
+
+TOKEN = env.var['TOKEN']
 
 class BOT(discord.Client):
     def __init__(self, *args, **kwargs):
@@ -21,9 +24,7 @@ tree = app_commands.CommandTree(bot)
 
 @bot.event
 async def on_member_join(member):
-   (channel_id, message) = guild_settings_manager.getGuildWelcome(member.guild.id)
-   if (channel_id == None or message == None):
-       return
+   channel_id, message = int(env.var["WELCOME_CHANNEL_ID"]), env.var["WELCOME_MESSAGE"]
    await bot.get_channel(channel_id).send(message.replace("<@>", "<@"+str(member.id) + ">"))
 
 
@@ -36,11 +37,24 @@ async def ping(interaction: discord.Interaction):
 async def setWelcome(interaction: discord.Interaction, channel: discord.TextChannel, message: str):
     if (message == "" or message == " " or message == None):
         message = "Welcome <@>"
-    if(channel == None):
-        await interaction.response.send_message("you must specify a channel")
-        return
     await interaction.response.send_message("welcome channel : <#" + str(channel.id) + ">, info : (set <@> in the message to tag the new member), " +  " message :arrow_right: " + message.replace("<@>", "<@"+str(interaction.user.id) + ">"))
-    guild_settings_manager.setGuildWelcome(interaction.guild_id, channel.id, message)
+    env.set_env({"WELCOME_CHANNEL_ID" : channel.id, "WELCOME_MESSAGE" : message})
+
+@tree.command(name='setannonce', description='set annonce channel')
+@app_commands.checks.has_permissions(administrator=True)
+async def setting(interaction: discord.Interaction, channel: discord.TextChannel):
+    await interaction.response.send_message("annonce channel : <#" + str(channel.id) + ">")
+    env.set_env({"ANNONCE_CHANNEL_ID" : channel.id})
+
+@tree.command(name='annonce', description='dispatch an annonce')
+async def annonce(interaction: discord.Interaction, annonce: str):
+    annonce_channel = bot.get_channel(int(env.var["ANNONCE_CHANNEL_ID"]))
+    if annonce_channel.permissions_for(interaction.user).send_messages:
+        await annonce_channel.send(annonce)
+    
+    
+    else:
+        await interaction.response.send_message("You don't have permission to send messages in this channel")
 
 @tree.error
 async def on_error(interaction: discord.Interaction, error):
