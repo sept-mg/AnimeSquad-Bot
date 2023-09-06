@@ -75,7 +75,7 @@ async def anime(interaction: discord.Interaction):
         type="link",
     )
     embed.set_image(url=image[random.randint(0, len(image)-1)])
-    embed.add_field(name="Synopsis", value=data["info_link"])
+    embed.add_field(name="Synopsis :", value=data["info_link"])
 
     await interaction.response.send_message(embed=embed)
 
