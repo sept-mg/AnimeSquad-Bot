@@ -1,4 +1,4 @@
-import discord
+import discord, json, requests
 from discord import app_commands
 from env import Env
 
@@ -40,25 +40,31 @@ async def setWelcome(interaction: discord.Interaction, channel: discord.TextChan
     await interaction.response.send_message("welcome channel : <#" + str(channel.id) + ">, info : (set <@> in the message to tag the new member), " +  " message :arrow_right: " + message.replace("<@>", "<@"+str(interaction.user.id) + ">"))
     env.set_env({"WELCOME_CHANNEL_ID" : channel.id, "WELCOME_MESSAGE" : message})
 
-@tree.command(name='setannonce', description='set annonce channel')
-@app_commands.checks.has_permissions(administrator=True)
-async def setting(interaction: discord.Interaction, channel: discord.TextChannel):
-    await interaction.response.send_message("annonce channel : <#" + str(channel.id) + ">")
-    env.set_env({"ANNONCE_CHANNEL_ID" : channel.id})
+# @tree.command(name='setannonce', description='set annonce channel')
+# @app_commands.checks.has_permissions(administrator=True)
+# async def setting(interaction: discord.Interaction, channel: discord.TextChannel):
+#     await interaction.response.send_message("annonce channel : <#" + str(channel.id) + ">")
+#     env.set_env({"ANNONCE_CHANNEL_ID" : channel.id})
 
-@tree.command(name='annonce', description='dispatch an annonce')
-async def annonce(interaction: discord.Interaction, annonce: str):
-    annonce_channel = bot.get_channel(int(env.var["ANNONCE_CHANNEL_ID"]))
-    if annonce_channel.permissions_for(interaction.user).send_messages:
+# @tree.command(name='annonce', description='dispatch an annonce')
+# async def annonce(interaction: discord.Interaction, annonce: str):
+#     annonce_channel = bot.get_channel(int(env.var["ANNONCE_CHANNEL_ID"]))
+#     if annonce_channel.permissions_for(interaction.user).send_messages:
         
-        await annonce_channel.send(annonce)
+#         await annonce_channel.send(annonce)
 
 
     
-        await interaction.response.send_message("Annonce envoyée")
+#         await interaction.response.send_message("Annonce envoyée")
     
-    else:
-        await interaction.response.send_message("You don't have permission to send messages in this channel")
+#     else:
+#         await interaction.response.send_message("You don't have permission to send messages in this channel")
+
+
+@tree.command(name='anime', description='donne un anime aléatoire')
+async def anime(interaction: discord.Interaction):
+    resp = requests.get(env.var["ANIME_API_URL"])
+    await interaction.response.send_message(resp.json())
 
 @tree.error
 async def on_error(interaction: discord.Interaction, error):

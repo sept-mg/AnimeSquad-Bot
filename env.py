@@ -30,6 +30,6 @@ class Env:
         for line in lines:
             line = line.strip()
             if line and not line.startswith("#"):
-                key, value = line.split("=")
+                key, value = line.split("=", 1)
                 env_vars[key] = value
         return env_vars
