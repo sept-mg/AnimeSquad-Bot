@@ -1,4 +1,4 @@
-import discord, json, requests
+import discord, json, requests, random
 from discord import app_commands
 from env import Env
 
@@ -61,10 +61,24 @@ async def setWelcome(interaction: discord.Interaction, channel: discord.TextChan
 #         await interaction.response.send_message("You don't have permission to send messages in this channel")
 
 
-@tree.command(name='anime', description='donne un anime aléatoire')
+@tree.command(name='random', description='donne un anime aléatoire')
 async def anime(interaction: discord.Interaction):
     resp = requests.get(env.var["ANIME_API_URL"])
-    await interaction.response.send_message(resp.json())
+    data = resp.json()[random.randint(0, len(resp.json())-1)]
+    image = data["poster_online"].split("|")
+    url = env.var["ANIME_PAGE_URL"] + str(data["id"])
+    embed = discord.Embed(
+        title=data["name"], 
+        description=data["type"] + " avec " + str(data["episode"]) + " épisode·s",
+        color=0xff8f45,
+        url=url,
+        type="link",
+    )
+    embed.set_image(url=image[random.randint(0, len(image)-1)])
+    embed.add_field(name="Synopsis", value=data["info_link"])
+
+    await interaction.response.send_message(embed=embed)
+
 
 @tree.error
 async def on_error(interaction: discord.Interaction, error):
