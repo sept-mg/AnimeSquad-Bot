@@ -78,12 +78,13 @@ async def makeEmbedList(interaction: discord.Interaction, data: list):
         result += (f':small_orange_diamond: {i["name"]} - {i["episode"]} épisode·s' if i["type"] == "anime" else i["name"]) + "\n\n"
     
     embed = discord.Embed(
-        title="Liste des animés et films",
+        title="Liste des Animés et Films :",
         description=result,
         color=0xff8f45,
         type="rich",
         url=env.var["URL"]
     )
+    embed.set_thumbnail(url=env.var["GIF_URL"])
     embed.set_footer(icon_url=env.var["ICON_URL"], text="plus d'info avec /anime")
     await interaction.response.send_message(embed=embed)
 
