@@ -61,10 +61,33 @@ async def setWelcome(interaction: discord.Interaction, channel: discord.TextChan
 #         await interaction.response.send_message("You don't have permission to send messages in this channel")
 
 
-@tree.command(name='random', description='donne un anime aléatoire')
-async def anime(interaction: discord.Interaction):
-    resp = requests.get(env.var["ANIME_API_URL"])
-    data = resp.json()[random.randint(0, len(resp.json())-1)]
+animelist = []
+
+def refreshAnimeList(data):
+    animelist.clear()
+    for i in data:
+        animelist.append(app_commands.Choice(name=i["name"], value=i["name"]))
+
+
+async def makeEmbedList(interaction: discord.Interaction, data: list):
+    result = ""
+    animelist.clear()
+    for i in data:
+        animelist.append(app_commands.Choice(name=i["name"], value=i["name"]))
+
+        result += (f':small_orange_diamond: {i["name"]} - {i["episode"]} épisode·s' if i["type"] == "anime" else i["name"]) + "\n\n"
+    
+    embed = discord.Embed(
+        title="Liste des animés et films",
+        description=result,
+        color=0xff8f45,
+        type="rich",
+        url=env.var["URL"]
+    )
+    embed.set_footer(icon_url=env.var["ICON_URL"], text="plus d'info avec /anime")
+    await interaction.response.send_message(embed=embed)
+
+async def makeEmbedAnime(interaction: discord.Interaction, data: list):
     image = data["poster_online"].split("|")
     url = env.var["ANIME_PAGE_URL"] + str(data["id"])
     embed = discord.Embed(
@@ -79,10 +102,33 @@ async def anime(interaction: discord.Interaction):
 
     await interaction.response.send_message(embed=embed)
 
+@tree.command(name='list', description='liste des animés et films')
+async def list(interaction: discord.Interaction):
+    resp = requests.get(env.var["ANIME_API_URL"])
+    data = resp.json()
+    await makeEmbedList(interaction, data)
+
+@tree.command(name='random', description='donne un anime aléatoire')
+async def anime(interaction: discord.Interaction):
+    resp = requests.get(env.var["ANIME_API_URL"])
+    data = resp.json()[random.randint(0, len(resp.json())-1)]
+    refreshAnimeList(resp.json())
+    await makeEmbedAnime(interaction, data)
+
+@tree.command(name='anime', description='donne un anime')
+@app_commands.choices(anime=animelist)
+async def anime(interaction: discord.Interaction, anime: app_commands.Choice[str]):
+    resp = requests.get(env.var["ANIME_API_URL"] + "&anime_name=" + str(anime.value))
+    data = resp.json()[0]
+    await makeEmbedAnime(interaction, data)
+
 
 @tree.error
 async def on_error(interaction: discord.Interaction, error):
     await interaction.response.send_message(error, ephemeral=True)
 
 if __name__ == "__main__":
+    resp = requests.get(env.var["ANIME_API_URL"])
+    refreshAnimeList(resp.json())
+    
     bot.run(TOKEN)
