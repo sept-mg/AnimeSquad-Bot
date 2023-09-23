@@ -97,6 +97,7 @@ async def makeEmbedAnime(interaction: discord.Interaction, data: list):
         url=url,
         type="link",
     )
+    embed.set_footer(icon_url=env.var["ICON_URL"], text=url)
     embed.set_image(url=image[random.randint(0, len(image)-1)])
     embed.add_field(name="Synopsis :", value=data["info_link"])
 
