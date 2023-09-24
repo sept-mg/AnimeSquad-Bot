@@ -93,7 +93,7 @@ async def makeEmbedAnime(interaction: discord.Interaction, data: list):
     url = env.var["ANIME_PAGE_URL"] + str(data["id"])
     embed = discord.Embed(
         title=data["name"], 
-        description=data["type"] + " avec " + str(data["episode"]) + " épisode·s",
+        description=data["type"].capitalize() + " avec " + str(data["episode"]) + " épisode·s",
         color=0xff8f45,
         url=url,
         type="link",
